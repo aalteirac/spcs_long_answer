@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8" />
+   </head>
+   <body>
+     Delay(sec): <input type="text" id="delay" value="3"/>
+     <input type="button" id="startButton" value="Start Listening"/>
+     <input type="button" id="stopButton" value="Stop Listening" disabled/>
+     <input type="button" id="clear" value="Clear Logs"/>
+      <hr/>
+      <div id="content"></div>
+      <script>
+         let scrEvent;
+         let socket
+         let run=false;
+         document.getElementById('clear').onclick=function(){
+            document.getElementById('content').innerHTML =''
+         }
+         document.getElementById('stopButton').onclick=function(){
+            run=false;
+            document.getElementById('startButton').disabled=run;
+            document.getElementById('stopButton').disabled=!run;
+            document.getElementById('content').innerHTML += 'Listening to server events stopped..<br/>';
+            document.getElementById('content').innerHTML += 'Listening to socket msgs stopped..<br/>';
+            scrEvent.removeEventListener('message',logEvent)
+            scrEvent.removeEventListener('open',logOpen)
+            scrEvent.close();
+            socket.onmessage=()=>{};
+            socket.close();
+         }
+         document.getElementById('startButton').onclick=function(){
+            run=true;
+            document.getElementById('stopButton').disabled=!run;
+            document.getElementById('startButton').disabled=run;
+            scrEvent = new EventSource('/talk?delay='+document.getElementById('delay').value);
+            initSocket();
+            scrEvent.onmessage = function(e) {
+                logEvent(e)
+            };
+            scrEvent.onopen = function(e) {
+                logOpen("SSE")
+            };
+         }
+         function logOpen(source){
+            document.getElementById('content').innerHTML += source +': Connections to the server established..<br/>';
+         }
+         function logEvent(e){
+            document.getElementById('content').innerHTML += e.data + '<br/>';
+         }
+         function initSocket(){
+            console.log()
+            socket = new WebSocket(`wss://${window.location.host}/`);
+            socket.onmessage = function(e) {
+               logEvent(e)
+            };
+            socket.onopen = function(e) {
+               logOpen("Socket")
+            };
+         }
+         
+      </script>
+   </body>
+</html>

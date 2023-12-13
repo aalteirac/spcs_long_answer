@@ -1,0 +1,10 @@
+spec:
+  container:
+  - name: longrunning
+    image: /alteirac/data_schema/tutorial_repository/longrunning:v0
+  endpoint:
+  - name: ui
+    port: 8080
+    public: true
+
+

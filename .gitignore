@@ -1,0 +1,15 @@
+api/weights/**
+!api/weights/put_your_models_here.txt
+
+.env.*
+.env
+!.env.sample
+
+node_modules
+__pycache__
+api/static/*
+**/.ruff_cache/
+**/node_modules/
+**/dist
+
+deploy.txt
