@@ -19,9 +19,10 @@ app.get('/talk', (req,res) => {
     const current_url =new URL(req.url, `http://${req.headers.host}`);
     const search_params = current_url.searchParams;
     var delay = search_params.get('delay');
+    var type = search_params.get('type');
     if(itr)
         clearInterval(itr)
-    sendServerSendEvent(req, res,delay);
+    sendServerSendEvent(req, res,delay,type);
     
 });
 
@@ -45,7 +46,7 @@ function sendSocket(data){
     wss.broadcast(`new socket event  ${data}`)
 }
 
-function sendServerSendEvent(req, res,delay) {
+function sendServerSendEvent(req, res,delay,type) {
     try {
         parseInt(delay);
     } catch (error) {
@@ -58,14 +59,16 @@ function sendServerSendEvent(req, res,delay) {
     });
 
     var sseId = (new Date()).toLocaleTimeString();
-
-    itr=setInterval(function() {
-        writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());
+    if (type=='ws')
         sendSocket((new Date()).toLocaleTimeString())
+    itr=setInterval(function() {
+        if (type=='ws')
+            sendSocket((new Date()).toLocaleTimeString())
+        if (type=='sse')
+            writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());
     },parseInt (delay) *1000);
-
-    writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());
-    sendSocket((new Date()).toLocaleTimeString())
+    if (type=='sse')
+        writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());
 }
 
 function writeServerSendEvent(res, sseId, data) {

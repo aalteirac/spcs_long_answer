@@ -8,6 +8,8 @@
      <input type="button" id="startButton" value="Start Listening"/>
      <input type="button" id="stopButton" value="Stop Listening" disabled/>
      <input type="button" id="clear" value="Clear Logs"/>
+     <input type="checkbox" id="sse" checked>SSE
+     <input type="checkbox" id="ws">WS
       <hr/>
       <div id="content"></div>
       <script>
@@ -21,6 +23,8 @@
             run=false;
             document.getElementById('startButton').disabled=run;
             document.getElementById('stopButton').disabled=!run;
+            document.getElementById('sse').disabled=run;
+            document.getElementById('ws').disabled=run;
             document.getElementById('content').innerHTML += 'Listening to server events stopped..<br/>';
             document.getElementById('content').innerHTML += 'Listening to socket msgs stopped..<br/>';
             scrEvent.removeEventListener('message',logEvent)
@@ -33,14 +37,22 @@
             run=true;
             document.getElementById('stopButton').disabled=!run;
             document.getElementById('startButton').disabled=run;
-            scrEvent = new EventSource('/talk?delay='+document.getElementById('delay').value);
-            initSocket();
-            scrEvent.onmessage = function(e) {
+            document.getElementById('sse').disabled=run;
+            document.getElementById('ws').disabled=run;
+            
+            if (document.getElementById('ws').checked==true){
+               fetch('/talk?delay='+document.getElementById('delay').value+"&type=ws");
+               initSocket();
+            }
+            if (document.getElementById('sse').checked==true){
+               scrEvent = new EventSource('/talk?delay='+document.getElementById('delay').value+'&type=sse');
+               scrEvent.onmessage = function(e) {
                 logEvent(e)
-            };
-            scrEvent.onopen = function(e) {
-                logOpen("SSE")
-            };
+               };
+               scrEvent.onopen = function(e) {
+                  logOpen("SSE")
+               };
+            }
          }
          function logOpen(source){
             document.getElementById('content').innerHTML += source +': Connections to the server established..<br/>';
