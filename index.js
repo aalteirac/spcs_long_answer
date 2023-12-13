@@ -8,6 +8,7 @@ const express = require('express');
 const sendInterval = 5000;
 const app = express();
 let itr;
+let itr2;
 
 app.use(express.static(path.join(__dirname, 'static')));
 
@@ -22,7 +23,9 @@ app.get('/talk', (req,res) => {
     var type = search_params.get('type');
     if(itr)
         clearInterval(itr)
-    sendServerSendEvent(req, res,delay,type);
+    if(itr2)
+        clearInterval(itr2)
+   launch(req,res,delay,type)
     
 });
 
@@ -30,12 +33,7 @@ const server = http.createServer(app);
 server.listen(8080);
 
 const wss = new WebSocket.Server({ server: server });
-wss.getUniqueID = function () {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-    return s4() + s4() + '-' + s4();
-};
+
 wss.broadcast = function broadcast(msg){
     wss.clients.forEach(function each(client){
         client.send(msg);
@@ -46,29 +44,27 @@ function sendSocket(data){
     wss.broadcast(`new socket event  ${data}`)
 }
 
-function sendServerSendEvent(req, res,delay,type) {
-    try {
-        parseInt(delay);
-    } catch (error) {
-        delay=sendInterval;
-    }
-    res.writeHead(200, {
-    'Content-Type' : 'text/event-stream',
-    'Cache-Control' : 'no-cache',
-    'Connection' : 'keep-alive'
-    });
-
+function launch(req, res,delay,type){
     var sseId = (new Date()).toLocaleTimeString();
-    if (type=='ws')
-        sendSocket((new Date()).toLocaleTimeString())
-    itr=setInterval(function() {
-        if (type=='ws')
+    if (type=='ws'){
+        sendSocket(sseId)
+        itr=setInterval(function() {
             sendSocket((new Date()).toLocaleTimeString())
-        if (type=='sse')
-            writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());
-    },parseInt (delay) *1000);
-    if (type=='sse')
-        writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());
+        },parseInt (delay) *1000);
+        res.send('OK')
+    }    
+    if (type=='sse'){
+        res.writeHead(200, {
+            'Content-Type' : 'text/event-stream',
+            'Cache-Control' : 'no-cache',
+            'Connection' : 'keep-alive'
+            });
+        writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());  
+        itr2=setInterval(function() {
+            writeServerSendEvent(res, sseId, (new Date()).toLocaleTimeString());  
+        },parseInt (delay) *1000);  
+    }
+        
 }
 
 function writeServerSendEvent(res, sseId, data) {

@@ -41,8 +41,8 @@
             document.getElementById('ws').disabled=run;
             
             if (document.getElementById('ws').checked==true){
-               fetch('/talk?delay='+document.getElementById('delay').value+"&type=ws");
                initSocket();
+               fetch('/talk?delay='+document.getElementById('delay').value+"&type=ws");
             }
             if (document.getElementById('sse').checked==true){
                scrEvent = new EventSource('/talk?delay='+document.getElementById('delay').value+'&type=sse');
