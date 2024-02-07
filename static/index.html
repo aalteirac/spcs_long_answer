@@ -27,11 +27,15 @@
             document.getElementById('ws').disabled=run;
             document.getElementById('content').innerHTML += 'Listening to server events stopped..<br/>';
             document.getElementById('content').innerHTML += 'Listening to socket msgs stopped..<br/>';
-            scrEvent.removeEventListener('message',logEvent)
-            scrEvent.removeEventListener('open',logOpen)
-            scrEvent.close();
-            socket.onmessage=()=>{};
-            socket.close();
+            if (scrEvent){
+               scrEvent.removeEventListener('message',logEvent)
+               scrEvent.removeEventListener('open',logOpen)
+               scrEvent.close();
+            }
+            if(socket){
+               socket.onmessage=()=>{};
+               socket.close();
+            }
          }
          document.getElementById('startButton').onclick=function(){
             run=true;
@@ -42,7 +46,9 @@
             
             if (document.getElementById('ws').checked==true){
                initSocket();
-               fetch('/talk?delay='+document.getElementById('delay').value+"&type=ws");
+               setTimeout(() => {
+                  fetch('/talk?delay='+document.getElementById('delay').value+"&type=ws");
+               }, 500);
             }
             if (document.getElementById('sse').checked==true){
                scrEvent = new EventSource('/talk?delay='+document.getElementById('delay').value+'&type=sse');
